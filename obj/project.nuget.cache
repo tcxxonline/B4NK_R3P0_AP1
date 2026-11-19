@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Br4FKly/I0w=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\wtrai\\Documents\\CSharpTestlerim\\BankServer\\BankServerApi\\BankServerApi.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\wtrai\\.nuget\\packages\\microsoft.aspnetcore.openapi\\11.0.0\\microsoft.aspnetcore.openapi.11.0.0.nupkg.sha512",
+    "C:\\Users\\wtrai\\.nuget\\packages\\microsoft.openapi\\3.11.0\\microsoft.openapi.3.11.0.nupkg.sha512"
+  ],
+  "logs": []
+}
