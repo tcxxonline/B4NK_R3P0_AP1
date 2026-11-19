@@ -1,41 +1,49 @@
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// Sunucu açıldığında ana sayfaya girince hoşgeldin mesajı versin
+app.MapGet("/", () => "Banka Sunucusu (BankServerApi) Aktif ve Çalışıyor! 🚀");
 
-app.UseHttpsRedirection();
+// 1. KULLANICI KAYIT (REGISTER) ENDPOINT'İ
+// Örnek kullanım: POST /register?username=ahmet&password=123
+app.MapPost("/register", (string username, string password) => {
+    if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+    {
+        return Results.BadRequest(new { message = "Kullanıcı adı ve şifre boş olamaz!" });
+    }
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    // Şimdilik basitçe başarılı döndürüyoruz (İleride veritabanına bağlarız)
+    return Results.Ok(new { message = $"Kullanıcı başarıyla kaydedildi: {username}" });
+});
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// 2. DOSYA YÜKLEME (FILE UPLOAD) ENDPOINT'İ
+app.MapPost("/upload", async (IFormFile file) => {
+    if (file == null || file.Length == 0)
+    {
+        return Results.BadRequest(new { message = "Lütfen geçerli bir dosya yükleyin!" });
+    }
+
+    // Dosyaların kaydedileceği klasör (sunucu içinde 'uploads' klasörü)
+    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+    if (!Directory.Exists(uploadsFolder))
+    {
+        Directory.CreateDirectory(uploadsFolder);
+    }
+
+    // Dosya adını rastgele/karışık (obfuscated) hale getiriyoruz ki çakışma olmasın ve güvenli olsun
+    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+    // Dosyayı sunucuya kaydediyoruz
+    using (var stream = new FileStream(filePath, FileMode.Create))
+    {
+        await file.CopyToAsync(stream);
+    }
+
+    return Results.Ok(new { 
+        message = "Dosya başarıyla yüklendi!", 
+        savedAs = uniqueFileName 
+    });
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
